@@ -1,11 +1,21 @@
-import mongoose, { Mongoose } from "mongoose";
-import { DB_NAME } from "./constants";
+// import mongoose, { Mongoose } from "mongoose";
+// import { DB_NAME } from "../constants.js";
 
 
+
+
+//second approach to connect with database and start server (best practice)
+
+import dotenv from "dotenv";
+import connectDB from "./db/index.js";
+
+dotenv.config(); // 👈 DO NOT pass path unless you know why
+
+connectDB();
 
 
 //first approach to connect with database and start server
-
+/*
 import e from "express";
 import express from "express";
 import dotenv from "dotenv";
@@ -27,4 +37,4 @@ const app=express();
     console.error("Error connecting to the database", error);
     throw error;
 }})()
-    
+*/   
