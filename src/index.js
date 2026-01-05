@@ -13,6 +13,16 @@ dotenv.config(); // 👈 DO NOT pass path unless you know why
 
 connectDB();
 
+.then(()=>{
+    app.listen(process.env.PORT,()=>{
+        console.log(`Server is running on port ${process.env.PORT}`);
+    })
+})
+.catch((err)=>{
+    console.error("Error connecting to the database", err);
+    throw err;
+});
+
 
 //first approach to connect with database and start server
 /*
