@@ -11,7 +11,7 @@ import connectDB from "./db/index.js";
 
 dotenv.config(); // 👈 DO NOT pass path unless you know why
 
-connectDB();
+connectDB()
 
 .then(()=>{
     app.listen(process.env.PORT,()=>{
