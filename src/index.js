@@ -5,7 +5,7 @@
 
 
 //second approach to connect with database and start server (best practice)
-
+import app from "./app.js";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
 
