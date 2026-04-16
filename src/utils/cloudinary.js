@@ -9,12 +9,14 @@ cloudinary.config({
 export const uploadToCloudinary = async (filePath, folder = "uploads") => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
-      resource_type: "auto", // handles image, video, pdf, etc
+      resource_type: "auto",
       folder,
     });
 
-    return result;
+    // Return only the secure URL
+    return result.secure_url;
+
   } catch (error) {
-    throw error;
+    throw new Error("Cloudinary upload failed");
   }
 };
