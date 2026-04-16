@@ -40,7 +40,15 @@ const registerUser = asyncHandler(async (req, res) => {
     if(!avatarUrl || !coverimageUrl){
         throw new Apierror("Failed to upload images to cloudinary",500);
     }
-    
+
+    const newUser = await User.create({
+        fullname,
+        avatar: avatarUrl.secure_url,
+        coverimage: coverimageUrl.secure_url,
+        email,
+        username: username.toLowerCase(),
+        password
+    });
 
 });
 
