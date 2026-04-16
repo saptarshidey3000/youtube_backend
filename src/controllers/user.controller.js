@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import {Apierror} from "../utils/apiError.js";
 import {User} from "../models/user.model.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
+import {ApiResponse} from "../utils/apiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     //get user details from request body
@@ -49,6 +50,17 @@ const registerUser = asyncHandler(async (req, res) => {
         username: username.toLowerCase(),
         password
     });
+
+    const createdUser = await User.findById(newUser._id).select("-password -refreshToken");
+    if(!createdUser){
+        throw new Apierror("Failed to create user",500);
+    }
+
+    return res.status(201).json(
+        new ApiResponse(
+            200,"User registered successfully",createdUser
+        )
+    );
 
 });
 
