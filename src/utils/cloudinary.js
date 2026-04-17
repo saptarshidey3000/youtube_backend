@@ -13,10 +13,10 @@ export const uploadToCloudinary = async (filePath, folder = "uploads") => {
       folder,
     });
 
-    // console.log("Cloudinary upload result:", result.url); // Log the URL for debugging
-    // return result;
+    console.log("Cloudinary upload result:", result.url); // Log the URL for debugging
+    return result;
     // Return only the secure URL
-    return result.secure_url;
+    // return result.secure_url;
 
   } catch (error) {
     throw new Error("Cloudinary upload failed");
