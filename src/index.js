@@ -1,20 +1,10 @@
-// import mongoose, { Mongoose } from "mongoose";
-// import { DB_NAME } from "../constants.js";
-
-
-
-
-//second approach to connect with database and start server (best practice)
-import app from "./app.js";
 import dotenv from "dotenv";
+dotenv.config(); // no path needed
+
+import app from "./app.js";
 import connectDB from "./db/index.js";
 
-dotenv.config({
-    path: './.env'
-}); // 👈 DO NOT pass path unless you know why
-
 connectDB()
-
 .then(()=>{
     app.listen(process.env.PORT,()=>{
         console.log(`Server is running on port ${process.env.PORT}`);
@@ -24,29 +14,3 @@ connectDB()
     console.error("Error connecting to the database", err);
     throw err;
 });
-
-
-//first approach to connect with database and start server
-/*
-import e from "express";
-import express from "express";
-import dotenv from "dotenv";
-const app=express();
-
-(async()=>{
-    try {
-     await   mongoose.connect(`${process.env.MONGO_URI}/${DB_NAME}`);
-        console.log("Connected to the database successfully"); 
-        app.on("error",(error)=>{
-            console.error("Failed to connect with the database");
-            throw error;
-        })
-        app.listen(process.env.PORT,()=>{
-            console.log(`Server is running on port ${process.env.PORT}`);
-        })
-
-} catch(error){
-    console.error("Error connecting to the database", error);
-    throw error;
-}})()
-*/   

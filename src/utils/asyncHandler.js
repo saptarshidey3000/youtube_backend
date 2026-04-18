@@ -1,17 +1,6 @@
-// const asyncHandler = (fn) => async (req, res, next) => {
-//     try {
-//         await fn(req, res, next);
-//     } catch (error) {
-//        res.status(500).json({ message: error.message });
-        
-//     }
-// }
-
-//using promise
-
-const asyncHandler = (requestHandler) => (req, res, next) => {
-    Promise.resolve(requestHandler(req, res, next)).
-    catch((error)=>next(error));
-}
+const asyncHandler = (fn) => (req, res, next) => {
+  console.log("asyncHandler called");
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 export default asyncHandler;
