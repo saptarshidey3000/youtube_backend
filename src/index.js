@@ -9,7 +9,9 @@ import app from "./app.js";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
 
-dotenv.config(); // 👈 DO NOT pass path unless you know why
+dotenv.config({
+    path: './.env'
+}); // 👈 DO NOT pass path unless you know why
 
 connectDB()
 
