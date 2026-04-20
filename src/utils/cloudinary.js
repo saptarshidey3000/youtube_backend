@@ -1,12 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { v2 as cloudinary } from "cloudinary";
-
-// ✅ DEBUG (add this at TOP — just for testing)
-console.log("ENV CHECK:");
-console.log("CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("API_KEY:", process.env.CLOUDINARY_API_KEY);
-console.log("API_SECRET:", process.env.CLOUDINARY_API_SECRET);
+import fs from "fs"; // ✅ add this
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -24,10 +19,19 @@ export const uploadToCloudinary = async (filePath, folder = "uploads") => {
       folder,
     });
 
+    // ✅ DELETE local file after successful upload
+    fs.unlinkSync(filePath);
+
     return result;
 
   } catch (error) {
     console.error("Cloudinary Error:", error);
+
+    // ✅ ALSO delete file if upload fails (cleanup)
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
     throw error;
   }
 };
