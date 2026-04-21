@@ -1,8 +1,8 @@
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js"; // (not used here, but kept for consistency)
-import { asyncHandler } from "../utils/asyncHandler.js";
+import  asyncHandler  from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model.js"; // make sure this import exists
+import User  from "../models/user.model.js"; // make sure this import exists
 
 // Middleware to verify JWT token
 export const verifyJWT = asyncHandler(async (req, res, next) => {
