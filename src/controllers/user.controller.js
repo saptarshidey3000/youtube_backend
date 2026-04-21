@@ -28,12 +28,15 @@ const generateAccessAndRefreshTokens = async (userId) => {
 }
 
 
-//register user
+// ==============================
+// REGISTER USER CONTROLLER
+// ==============================
+
 const registerUser = asyncHandler(async (req, res, next) => {
 
+    // 🔹 DEBUG LOGS (for development only)
     console.log("CONTENT TYPE:", req.headers["content-type"]);
-
-       console.log("BODY RAW:", req.body);
+    console.log("BODY RAW:", req.body);
     console.log("TYPE OF BODY:", typeof req.body);
     console.log("KEYS:", Object.keys(req.body || {}));
 
@@ -44,20 +47,28 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
     console.log("FILES:", req.files);
 
+
+    // 🔹 STEP 1: Extract data from request body
     const fullname = req.body?.fullname;
     const username = req.body?.username;
     const email = req.body?.email;
     const password = req.body?.password;
 
-  if (
-  !fullname?.trim() ||
-  !username?.trim() ||
-  !email?.trim() ||
-  !password?.trim()
-) {
-  throw new ApiError(400, "All fields are required");
-}
 
+    // 🔹 STEP 2: Validate required fields
+    // Ensure no field is empty or just spaces
+    if (
+        !fullname?.trim() ||
+        !username?.trim() ||
+        !email?.trim() ||
+        !password?.trim()
+    ) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+
+    // 🔹 STEP 3: Check if user already exists
+    // Match either email OR username
     const existingUser = await User.findOne({
         $or: [{ email }, { username }]
     });
@@ -66,36 +77,52 @@ const registerUser = asyncHandler(async (req, res, next) => {
         throw new ApiError(409, "User already exists with this email or username");
     }
 
+
+    // 🔹 STEP 4: Get uploaded file paths (from multer)
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
     const coverimageLocalPath = req.files?.coverimage?.[0]?.path;
 
+
+    // 🔹 STEP 5: Validate file uploads
     if (!avatarLocalPath || !coverimageLocalPath) {
         throw new ApiError(400, "Avatar and cover image are required");
     }
 
+
+    // 🔹 STEP 6: Upload files to Cloudinary
     const avatarUrl = await uploadToCloudinary(avatarLocalPath);
     const coverimageUrl = await uploadToCloudinary(coverimageLocalPath);
 
+
+    // 🔹 STEP 7: Check if upload was successful
     if (!avatarUrl || !coverimageUrl) {
         throw new ApiError(500, "Failed to upload images to cloudinary");
     }
 
+
+    // 🔹 STEP 8: Create user in database
     const newUser = await User.create({
         fullname,
         avatar: avatarUrl.secure_url,
         coverimage: coverimageUrl.secure_url,
         email,
-        username: username.toLowerCase(),
+        username: username.toLowerCase(), // normalize username
         password
     });
 
+
+    // 🔹 STEP 9: Fetch created user (exclude sensitive fields)
     const createdUser = await User.findById(newUser._id)
         .select("-password -refreshToken");
 
+
+    // 🔹 STEP 10: Safety check
     if (!createdUser) {
         throw new ApiError(500, "Failed to create user");
     }
 
+
+    // 🔹 STEP 11: Send response
     return res.status(201).json(
         new ApiResponse(
             201,
@@ -112,7 +139,7 @@ const loginUser = asyncHandler(async (req, res) => {
         const {email, username, password} = req.body;
 
         // username or email
-
+        
         if(!email || !password) {
             throw new ApiError(400, "Email and password are required");
         }
@@ -203,6 +230,19 @@ const logoutUser = asyncHandler(async (req, res) => {
                 "User logged out successfully"
             )
         );
+});
+
+
+//refresh access token
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    // 🔹 STEP 1: Get refresh token from cookies
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+
+    // 🔹 STEP 2: Validate refresh token presence
+    if (!incomingRefreshToken) {
+        throw new ApiError(400, "Refresh token is required");
+    }
+    
 });
 
 
