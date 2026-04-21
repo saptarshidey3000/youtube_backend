@@ -161,7 +161,49 @@ const loginUser = asyncHandler(async (req, res) => {
 
 //logout user
 const logoutUser = asyncHandler(async (req, res) => {
-          
+
+    // 🔹 STEP 1: Remove refresh token from database
+    // We find the logged-in user using req.user._id (comes from verifyJWT middleware)
+    // Then we set refreshToken = undefined (basically deleting it)
+
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { refreshToken: undefined }
+        },
+        {
+            new: true, // returns updated document (not really needed here, but okay)
+        }
+    );
+
+    // 🔹 STEP 2: Define cookie options
+    // httpOnly → frontend JS cannot access cookies (security)
+    // secure → cookie only sent over HTTPS (important in production)
+
+    const options = {
+        httpOnly: true,
+        secure: true,
+    };
+
+    // 🔹 STEP 3: Clear cookies from browser
+    // We remove both:
+    // ✔ accessToken (short-lived token)
+    // ✔ refreshToken (long-lived token)
+
+    return res
+        .status(200) // success status
+        .clearCookie("accessToken", options)   // remove access token cookie
+        .clearCookie("refreshToken", options)  // remove refresh token cookie
+
+        // 🔹 STEP 4: Send success response
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                "User logged out successfully"
+            )
+        );
 });
 
-export { registerUser, loginUser };
+
+export { registerUser, loginUser , logoutUser};
