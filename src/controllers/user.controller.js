@@ -90,7 +90,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     });
 
     const createdUser = await User.findById(newUser._id)
-        .select("-password -refreshTokens");
+        .select("-password -refreshToken");
 
     if (!createdUser) {
         throw new ApiError(500, "Failed to create user");
@@ -149,8 +149,8 @@ const loginUser = asyncHandler(async (req, res) => {
                         200,
                         {
                             user: loggedInUser,
-                            accessToken,
-                            refreshToken
+                            accessToken
+                        
                         },
                         "User logged in successfully"
                     )

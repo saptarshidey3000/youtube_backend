@@ -9,21 +9,23 @@ app.use(cors({
     credentials: true
 }));
 
-// ✅ IMPORTANT: move these AFTER routes OR keep but ensure multer handles first
+// ✅ FIRST: body parsers
+app.use(express.json({ limit: '16kb' }));
+app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+
+// ✅ THEN: cookies
 app.use(cookieParser());
 
 // routes import 
 import userRouter from './routes/user.routes.js';
 
-// routes declaration
+// ✅ THEN: routes
 app.use('/api/v1/users', userRouter);
 
-// ✅ body parsers AFTER routes (safe for multer)
-app.use(express.json({ limit: '16kb' }));
-app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-
+// static
 app.use(express.static('public'));
 
+// error handler
 app.use((err, req, res, next) => {
     console.error(err);
 
