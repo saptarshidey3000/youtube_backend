@@ -243,12 +243,50 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     if (!incomingRefreshToken) {
         throw new ApiError(400, "Refresh token is required");
     }
-    jwt.verify(
-        incomingRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-    )
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET,
+        )
+        // 🔹 STEP 3: Find user by ID from decoded token
+        const user = await User.findById(decodedToken?._id);
+    
+        // 🔹 STEP 4: Validate user existence and token match
+        if (!user || user.refreshToken !== incomingRefreshToken) {
+            throw new ApiError(401, "Invalid refresh token");
+        }
+        // 🔹 STEP 5: Generate new access token
+        const {accessToken,newRefreshToken} =   await generateAccessAndRefreshTokens(user._id);
+    
+        // 🔹 STEP 6: Send new access token in response
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+        return res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,    
+                    {
+                        accessToken,
+                        refreshToken: newRefreshToken
+                    },
+                    "Access token refreshed successfully"
+                )
+            );
+    
+    } catch (error) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
     
 });
 
 
-export { registerUser, loginUser , logoutUser};
+export { registerUser, 
+        loginUser , 
+        logoutUser,
+        refreshAccessToken};
