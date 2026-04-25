@@ -313,8 +313,34 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
   });
 
+  //get current user details
+  const getCurrentUser = asyncHandler(async (req, res) => {
+    // const user = await User.findById(req.user?._id)
+    //     .select("-password -refreshToken");
+    // if (!user) {
+    //     throw new ApiError(404, "User not found");
+    // }
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            req.user,
+            "Current user details fetched successfully"
+        )
+    );
+  });
+
+  //update user details (fullname, username, email, avatar, coverimage)
+
+  const updateUserDetails = asyncHandler(async (req, res) => {
+    
+  });
+
+  //delete user account
+
 
 export { registerUser, 
         loginUser , 
         logoutUser,
-        refreshAccessToken};
+        refreshAccessToken,
+        changePassword,
+        getCurrentUser};
