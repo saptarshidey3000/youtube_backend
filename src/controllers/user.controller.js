@@ -291,7 +291,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     // Find the user in the database
-    const user = await User.findById(req.user?.id);
+    const user = await User.findById(req.user?._id);
 
     //check password
     const isPasswordMatch = await user.comparePassword(currentPassword);
@@ -329,10 +329,87 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     );
   });
 
-  //update user details (fullname, username, email, avatar, coverimage)
+  //update user details (fullname, username, email))
 
   const updateUserDetails = asyncHandler(async (req, res) => {
+    const { fullname, username, email } = req.body;
+    if(!fullname || !username || !email) {
+        throw new ApiError(400, "Fullname, username and email are required");
+    }
     
+    const user = User.findByIdAndUpdate(
+        req.user._id,
+        {   
+          $set: {
+            fullname,
+            username,
+            email
+          }
+        } ,
+        { new: true }
+    ).select("-password ");
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            user,
+            "User details updated successfully"
+        )
+    );
+  
+    const updateData = {};  
+  });
+
+  //update avatar 
+  const updateAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar image is required");
+    }
+    const avatarUrl = await uploadToCloudinary(avatarLocalPath);
+    if (!avatarUrl) {
+        throw new ApiError(500, "Failed to upload avatar to cloudinary");
+    }
+    const user  =  await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { avatar: avatarUrl }
+        },
+        { new: true }
+    ).select("-password ");
+    return res.status(200).json(
+        new ApiResponse(
+            200,    
+            user,
+            "Avatar updated successfully"
+        )
+    );
+  });
+
+  //update cover image
+  const updateCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req.file?.path;
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "Cover image is required");
+    }   
+    const coverImageUrl = await uploadToCloudinary(coverImageLocalPath);
+    if (!coverImageUrl) {
+        throw new ApiError(500, "Failed to upload cover image to cloudinary");
+    }
+    const user  =  await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { coverimage: coverImageUrl }
+        },
+        { new: true }
+    ).select("-password ");
+    return res.status(200).json(
+        new ApiResponse(
+            200,    
+            user,
+            "Cover image updated successfully"
+        )
+    );
   });
 
   //delete user account
@@ -343,4 +420,8 @@ export { registerUser,
         logoutUser,
         refreshAccessToken,
         changePassword,
-        getCurrentUser};
+        getCurrentUser,
+        updateUserDetails,
+        updateAvatar,
+        updateCoverImage
+        };
