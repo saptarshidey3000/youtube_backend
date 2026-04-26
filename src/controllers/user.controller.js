@@ -420,53 +420,64 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Username is required");
     }
     // we will use aggregation to get user details along with subscriber count and subscription status
-    const channel = await User.aggregate([
+const channel = await User.aggregate([
   {
+    // Step 1: Find the user whose username matches (case-insensitive)
     $match: { username: username.toLowerCase() }
   },
   {
-    // Who subscribed to this channel
+    // Step 2: Get all users who FOLLOW this channel (followers)
     $lookup: {
-      from: "subscriptions",
-      localField: "_id",
-      foreignField: "channel",
-      as: "subscribers"
+      from: "subscriptions", // collection we are joining with
+      localField: "_id",     // current user's id (channel)
+      foreignField: "channel", // match where channel = this user's _id
+      as: "subscribers"      // store result in 'subscribers' array
     }
   },
   {
-    // Channels this user subscribed to
+    // Step 3: Get all channels THIS USER follows (following list)
     $lookup: {
-      from: "subscriptions",
-      localField: "_id",
-      foreignField: "subscriber",
-      as: "subscribedTo"
+      from: "subscriptions", // same collection
+      localField: "_id",     // current user's id
+      foreignField: "subscriber", // match where subscriber = this user's _id
+      as: "subscribedTo"     // store result in 'subscribedTo' array
     }
   },
   {
+    // Step 4: Add computed fields
     $addFields: {
+
+      // Count how many people follow this user
       subscriberCount: { $size: "$subscribers" },
+
+      // Count how many channels this user follows
       channelSubscribedToCount: { $size: "$subscribedTo" },
+
+      // Check if CURRENT LOGGED-IN USER follows this channel
       isSubscribed: {
         $cond: {
           if: {
+            // Check if req.user._id exists inside subscribers list
+            // "$subscribers.subscriber" extracts all subscriber IDs into an array
             $in: [req.user?._id, "$subscribers.subscriber"]
           },
-          then: true,
-          else: false
+          then: true,  // if found → user is subscribed
+          else: false  // if not → user is not subscribed
         }
       }
     }
   },
   {
+    // Step 5: Control what fields to send in response
     $project: {
-        fullname: 1,
-        username: 1,
-        email: 1,
-        avatar: 1,
-        coverimage: 1,
-        subscriberCount: 1,
-        channelSubscribedToCount: 1,
-        isSubscribed: 1
+        fullname: 1,                     // include fullname
+        username: 1,                     // include username
+        email: 1,                        // include email
+        avatar: 1,                       // include avatar
+        coverimage: 1,                   // include cover image
+        subscriberCount: 1,              // include followers count
+        channelSubscribedToCount: 1,     // include following count
+        isSubscribed: 1                  // include subscription status
     }
   }
 ]);
