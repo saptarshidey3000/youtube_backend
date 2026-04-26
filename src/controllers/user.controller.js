@@ -337,7 +337,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Fullname, username and email are required");
     }
     
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user._id,
         {   
           $set: {
@@ -357,7 +357,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
     );
   
-    const updateData = {};  
+    
   });
 
   //update avatar 
@@ -412,7 +412,81 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     );
   });
 
-  //delete user account
+  //get user channel details (for subscription)
+  const getUserChannelDetails = asyncHandler(async (req, res) => {
+    // we will get username from req.params
+    const {username} = req.params;
+    if(!username) {
+        throw new ApiError(400, "Username is required");
+    }
+    // we will use aggregation to get user details along with subscriber count and subscription status
+    const channel = await User.aggregate([
+  {
+    $match: { username: username.toLowerCase() }
+  },
+  {
+    // Who subscribed to this channel
+    $lookup: {
+      from: "subscriptions",
+      localField: "_id",
+      foreignField: "channel",
+      as: "subscribers"
+    }
+  },
+  {
+    // Channels this user subscribed to
+    $lookup: {
+      from: "subscriptions",
+      localField: "_id",
+      foreignField: "subscriber",
+      as: "subscribedTo"
+    }
+  },
+  {
+    $addFields: {
+      subscriberCount: { $size: "$subscribers" },
+      channelSubscribedToCount: { $size: "$subscribedTo" },
+      isSubscribed: {
+        $cond: {
+          if: {
+            $in: [req.user?._id, "$subscribers.subscriber"]
+          },
+          then: true,
+          else: false
+        }
+      }
+    }
+  },
+  {
+    $project: {
+        fullname: 1,
+        username: 1,
+        email: 1,
+        avatar: 1,
+        coverimage: 1,
+        subscriberCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1
+    }
+  }
+]);
+    if(!channel || channel.length === 0) {
+        throw new ApiError(404, "Channel not found");
+    }
+
+    return res
+        .status(200)
+        .json(
+        new ApiResponse(
+            200,    
+            channel[0],
+            "Channel details fetched successfully"
+        )
+    );
+
+  });
+
+  
 
 
 export { registerUser, 
@@ -423,5 +497,6 @@ export { registerUser,
         getCurrentUser,
         updateUserDetails,
         updateAvatar,
-        updateCoverImage
+        updateCoverImage,
+        getUserChannelDetails
         };
