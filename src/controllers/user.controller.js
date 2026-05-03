@@ -497,6 +497,12 @@ const channel = await User.aggregate([
 
   });
 
+  //get watch history
+  const getWatchHistory = asyncHandler(async (req, res) => {
+    // we will get user id from req.user._id
+    const userId = req.user._id;
+  });
+
   
 
 
@@ -509,5 +515,6 @@ export { registerUser,
         updateUserDetails,
         updateAvatar,
         updateCoverImage,
-        getUserChannelDetails
+        getUserChannelDetails,
+        getWatchHistory
         };
