@@ -497,81 +497,17 @@ const channel = await User.aggregate([
 
   });
 
+  //get watch history
+  const getWatchHistory = asyncHandler(async (req, res) => {
+    // we will get user id from req.user._id
+   
+  });
 
-// get watch history
-const getWatchHistory = asyncHandler(async (req, res) => {
+  //get liked videos
+  const getLikedVideos = asyncHandler(async (req, res) => {
+    // we will get user id from req.user._id
 
-  // Step 1: Check if user is logged in
-  if (!req.user?._id) {
-    throw new ApiError(401, "Unauthorized request");
-  }
-
-  // Step 2: Aggregation pipeline
-  const user = await User.aggregate([
-    {
-      // Find current logged-in user
-      $match: {
-        _id: new mongoose.Types.ObjectId(req.user._id)
-      }
-    },
-    {
-      // Populate watchHistory (array of video IDs → full video docs)
-      $lookup: {
-        from: "videos",                // video collection
-        localField: "watchHistory",    // array of video IDs
-        foreignField: "_id",           // match with video _id
-        as: "watchHistory",            // replace IDs with full video objects
-        pipeline: [
-          {
-            // Optional: get owner details of each video
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-              pipeline: [
-                {
-                  // keep only required owner fields
-                  $project: {
-                    fullname: 1,
-                    username: 1,
-                    avatar: 1
-                  }
-                }
-              ]
-            }
-          },
-          {
-            // owner will be array → convert to object
-            $addFields: {
-              owner: { $first: "$owner" }
-            }
-          }
-        ]
-      }
-    },
-    {
-      // Only return watchHistory field
-      $project: {
-        watchHistory: 1
-      }
-    }
-  ]);
-
-  // Step 3: Handle case when user not found
-  if (!user || user.length === 0) {
-    throw new ApiError(404, "User not found");
-  }
-
-  // Step 4: Send response
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      user[0].watchHistory,
-      "Watch history fetched successfully"
-    )
-  );
-});
+  });
 
   
 
