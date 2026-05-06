@@ -500,11 +500,35 @@ const channel = await User.aggregate([
   //get watch history
   const getWatchHistory = asyncHandler(async (req, res) => {
     // we will get user id from req.user._id
+    const user = await User.aggregate([
+        {
+            $match: {
+                 _id: new mongoose.Types.ObjectId(req.user._id)
+              }
+        } , 
+        {
+            $lookup: {
+                from: "videos", // collection to join with
+                localField: "watchhistory", // field in User model (array of video IDs)
+                foreignField: "_id", // field in Video model to match against
+                as: "watchHistory",
+                pipeline: []
    
-  });
+        
+        }
+    }
+   
+    ]);
+});
 
   //get liked videos
   const getLikedVideos = asyncHandler(async (req, res) => {
+    // we will get user id from req.user._id
+
+  });
+
+  //get playlists
+  const getPlaylists = asyncHandler(async (req, res) => {
     // we will get user id from req.user._id
 
   });
