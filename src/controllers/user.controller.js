@@ -511,27 +511,60 @@ const channel = await User.aggregate([
                 from: "videos", // collection to join with
                 localField: "watchhistory", // field in User model (array of video IDs)
                 foreignField: "_id", // field in Video model to match against
-                as: "watchHistory",
-                pipeline: []
-   
-        
+                as: "watchhistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users", // join with User collection to get uploader details
+                            localField: "owner", // field in Video model that references uploader's user ID
+                            foreignField: "_id", // field in User model to match against
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        fullname: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    } ,
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner" // since owner is an array after lookup, we take the first element (there will only be one uploader per video)
+                             } // convert owner array to object
+                        }
+                    }
+                ]       
         }
     }
    
     ]);
+
+    if(!user || user.length === 0) {
+        throw new ApiError(404, "User not found");
+    }
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            user[0].watchhistory,
+            "User watch history fetched successfully"
+        ))
 });
 
   //get liked videos
-  const getLikedVideos = asyncHandler(async (req, res) => {
-    // we will get user id from req.user._id
+//   const getLikedVideos = asyncHandler(async (req, res) => {
+//     // we will get user id from req.user._id
 
-  });
+//   });
 
   //get playlists
-  const getPlaylists = asyncHandler(async (req, res) => {
-    // we will get user id from req.user._id
+//   const getPlaylists = asyncHandler(async (req, res) => {
+//     // we will get user id from req.user._id
 
-  });
+//   });
 
   
 
